@@ -1,0 +1,66 @@
+# Copyright 2021-2025 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License 2.0 (the "License").  You may not use
+# this file except in compliance with the License.  You can obtain a copy
+# in the file LICENSE in the source distribution or at
+# https://www.openssl.org/source/license.html
+
+name: GitHub CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  OSSL_RUN_CI_TESTS: 1
+
+jobs:
+
+  full_featured:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: checkout fuzz/corpora submodule
+      run: git submodule update --init --depth 1 fuzz/corpora
+    - name: modprobe tls
+      run: sudo modprobe tls
+    - name: Enable sctp
+      run: sudo modprobe sctp
+    - name: Enable auth in sctp
+      run: sudo sysctl -w net.sctp.auth_enable=1
+    - name: install extra config support
+      run: sudo apt-get -y install libsctp-dev abigail-tools libzstd-dev zstd
+    - name: config
+      run: CFLAGS="--coverage -O0" ./config --prefix=$GITHUB_WORKSPACE/openssl-install --strict-warnings --banner=Configured enable-demos enable-h3demo enable-ktls enable-fips enable-lms enable-egd enable-ec_nistp_64_gcc_128 enable-md2 enable-rc5 enable-sctp enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-trace enable-zlib enable-zstd && perl configdata.pm --dump
+    - name: make
+      run: make -s -j4
+    - name: get cpu info
+      run: |
+        cat /proc/cpuinfo
+        ./util/opensslwrap.sh version -c
+    - name: make test
+      run: .github/workflows/make-test
+    - name: make install
+      run: make install      
+    - name: make build_generated
+      run: make -s build_generated
+    - name: make doc-nits
+      run: make doc-nits
+    - name: make help
+      run: make help
+    - name: make md-nits
+      run: |
+          sudo gem install mdl
+          make md-nits  
+    - name: save artifacts
+      if: success() || failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: "ci@full_featured"
+        path: artifacts.tar.gz
