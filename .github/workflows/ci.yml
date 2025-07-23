@@ -53,7 +53,14 @@ jobs:
     - name: make doc-nits
       run: make doc-nits
     - name: make docs
-      run: make build_docs 
+      run: make build_docs
+    - name: 'ApiCov'
+      uses: codesa-ai/ApiCov@v0.3.0-pre
+      with:
+        root_path: ${{ github.workspace }}
+        api_key: ${{ secrets.APICOV_KEY }}
+        install_path: $GITHUB_WORKSPACE/openssl-install
+        doxygen_path: $GITHUB_WORKSPACE/openssl-install/share/doc
     - name: save artifacts
       if: success() || failure()
       uses: actions/upload-artifact@v4
