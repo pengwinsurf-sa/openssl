@@ -29,7 +29,7 @@ jobs:
     - name: checkout fuzz/corpora submodule
       run: git submodule update --init --depth 1 fuzz/corpora
     - name: install extra config support
-      run: sudo apt-get -y install libsctp-dev abigail-tools libzstd-dev zstd
+      run: sudo apt-get -y install libsctp-dev abigail-tools libzstd-dev zstd pkgconf libssl-dev
     - name: config
       run: CFLAGS="--coverage -O0" ./config --prefix=$GITHUB_WORKSPACE/openssl-install --strict-warnings --banner=Configured enable-demos enable-h3demo enable-fips enable-lms enable-egd enable-ec_nistp_64_gcc_128 enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-trace enable-zlib enable-zstd && perl configdata.pm --dump
     - name: make
