@@ -49,7 +49,7 @@ jobs:
     - name: make docs
       run: make build_docs
     - name: 'ApiCov'
-      uses: codesa-ai/ApiCov@v0.3.6-pre
+      uses: codesa-ai/ApiCov@v0.3.8-pre
       with:
         root_path: ${{ github.workspace }}
         api_key: ${{ secrets.APICOV_KEY }}
